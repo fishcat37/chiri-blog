@@ -10,8 +10,26 @@ export interface PostLayoutProps {
   title: string
   pubDate: Date
   image?: string
+  category?: string
+  tags?: string[]
   readingTime?: ReadingTime
   toc?: TOCItem[]
+}
+
+// Giscus component props interface
+export interface GiscusProps {
+  className?: string
+}
+
+// Category tag component props interface
+export interface CategoryTagProps {
+  category: string
+  size?: 'small' | 'medium'
+}
+
+// Tag list component props interface
+export interface TagListProps {
+  tags: string[]
 }
 
 // Transition props interface

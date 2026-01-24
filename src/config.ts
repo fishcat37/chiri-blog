@@ -6,8 +6,8 @@ export const themeConfig: ThemeConfig = {
     website: 'https://chiri.the3ash.com/', // Site domain
     title: 'CHIRI', // Site title
     author: '3ASH', // Author name
-    description: 'Minimal blog built by Astro', // Site description
-    language: 'en-US' // Default language
+    description: '基于 Astro 构建的极简博客', // Site description
+    language: 'zh-CN' // Default language
   },
 
   // GENERAL SETTINGS ////////////////////////////////////////////////////////////////////////////////////
@@ -34,5 +34,18 @@ export const themeConfig: ThemeConfig = {
     imageViewer: true, // Enable image viewer
     copyCode: true, // Enable copy button in code blocks
     linkCard: true // Enable link card
+  },
+
+  // COMMENT SETTINGS ////////////////////////////////////////////////////////////////////////////////////
+  comment: {
+    enabled: true, // Enable comments
+    giscus: {
+      repo: 'fishcat37/chiri-blog', // GitHub repository
+      repoId: 'R_kgDORAXsOw', // Repository ID (get from giscus.app)
+      category: 'Announcements', // Discussion category
+      categoryId: 'DIC_kwDORAXsO84C1Xy6', // Category ID (get from giscus.app)
+      mapping: 'pathname', // Mapping between page and discussion
+      lang: 'zh-CN' // Language
+    }
   }
 }

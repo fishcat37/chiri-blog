@@ -36,10 +36,27 @@ export interface PostSettings {
   linkCard: boolean
 }
 
+// Giscus configuration type
+export interface GiscusConfig {
+  repo: string
+  repoId: string
+  category: string
+  categoryId: string
+  mapping: 'pathname' | 'url' | 'title' | 'og:title'
+  lang: string
+}
+
+// Comment settings configuration type
+export interface CommentSettings {
+  enabled: boolean
+  giscus: GiscusConfig
+}
+
 // Theme configuration type
 export interface ThemeConfig {
   site: SiteInfo
   general: GeneralSettings
   date: DateSettings
   post: PostSettings
+  comment: CommentSettings
 }

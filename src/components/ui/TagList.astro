@@ -1,0 +1,39 @@
+---
+type Props = {
+  tags: string[]
+}
+
+const { tags } = Astro.props
+---
+
+{
+  tags && tags.length > 0 && (
+    <div class="tag-list">
+      {tags.map((tag) => (
+        <a href={`/tag/${tag}/`} class="tag">
+          #{tag}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .tag {
+    font-size: var(--font-size-s);
+    color: var(--text-tertiary);
+    text-decoration: none;
+    transition: color 0.15s ease-out;
+  }
+
+  .tag:hover {
+    color: var(--text-secondary);
+  }
+</style>

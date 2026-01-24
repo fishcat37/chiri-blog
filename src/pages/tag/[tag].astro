@@ -1,0 +1,49 @@
+---
+import IndexLayout from '@/layouts/IndexLayout.astro'
+import PostList from '@/components/widgets/PostList.astro'
+import { themeConfig } from '@/config'
+import { getSortedFilteredPosts } from '@/utils/draft'
+
+export async function getStaticPaths() {
+  const posts = await getSortedFilteredPosts()
+  const allTags = posts.flatMap((post) => post.data.tags || [])
+  const uniqueTags = [...new Set(allTags)]
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = posts.filter((post) => post.data.tags?.includes(tag))
+    return {
+      params: { tag },
+      props: { posts: filteredPosts, tag }
+    }
+  })
+}
+
+type Props = {
+  posts: Awaited<ReturnType<typeof getSortedFilteredPosts>>
+  tag: string
+}
+
+const { tag, posts } = Astro.props
+---
+
+<IndexLayout title={`#${tag} · ${themeConfig.site.title}`} description={`包含 #${tag} 标签的文章`}>
+  <main>
+    <h1 class="tag-title">#{tag}</h1>
+    <p class="tag-count">共 {posts.length} 篇文章</p>
+    <PostList posts={posts} />
+  </main>
+</IndexLayout>
+
+<style>
+  .tag-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-bold);
+  }
+
+  .tag-count {
+    margin: 0 0 2rem 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-s);
+  }
+</style>

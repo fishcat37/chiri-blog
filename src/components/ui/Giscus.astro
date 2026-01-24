@@ -1,0 +1,107 @@
+---
+import { themeConfig } from '@/config'
+
+type Props = {
+  className?: string
+}
+
+const { className } = Astro.props
+const { giscus, enabled } = themeConfig.comment
+
+// Get the base URL for theme files
+const siteUrl = themeConfig.site.website.replace(/\/$/, '')
+---
+
+{
+  enabled && (
+    <section class:list={['giscus-container', className]}>
+      <div class="giscus"></div>
+    </section>
+  )
+}
+
+{
+  enabled && (
+    <script
+      is:inline
+      define:vars={{ giscus, siteUrl }}
+    >
+      (function() {
+        function getThemeUrl() {
+          const isDark = document.documentElement.classList.contains('dark')
+          // Use relative path for local, absolute for production
+          const basePath = window.location.hostname === 'localhost' 
+            ? '' 
+            : siteUrl
+          return isDark 
+            ? `${basePath}/giscus-dark.css` 
+            : `${basePath}/giscus-light.css`
+        }
+
+        function loadGiscus() {
+          const container = document.querySelector('.giscus')
+          if (!container || container.querySelector('iframe')) return
+
+          const script = document.createElement('script')
+          script.src = 'https://giscus.app/client.js'
+          script.setAttribute('data-repo', giscus.repo)
+          script.setAttribute('data-repo-id', giscus.repoId)
+          script.setAttribute('data-category', giscus.category)
+          script.setAttribute('data-category-id', giscus.categoryId)
+          script.setAttribute('data-mapping', giscus.mapping)
+          script.setAttribute('data-strict', '0')
+          script.setAttribute('data-reactions-enabled', '1')
+          script.setAttribute('data-emit-metadata', '0')
+          script.setAttribute('data-input-position', 'top')
+          script.setAttribute('data-theme', getThemeUrl())
+          script.setAttribute('data-lang', giscus.lang)
+          script.setAttribute('data-loading', 'lazy')
+          script.crossOrigin = 'anonymous'
+          script.async = true
+
+          container.appendChild(script)
+        }
+
+        function updateGiscusTheme() {
+          const iframe = document.querySelector('iframe.giscus-frame')
+          if (!iframe) return
+
+          iframe.contentWindow.postMessage(
+            { giscus: { setConfig: { theme: getThemeUrl() } } },
+            'https://giscus.app'
+          )
+        }
+
+        // Initial load
+        loadGiscus()
+
+        // Watch for theme changes
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'class') {
+              updateGiscusTheme()
+            }
+          })
+        })
+
+        observer.observe(document.documentElement, { 
+          attributes: true, 
+          attributeFilter: ['class'] 
+        })
+
+        // Handle Astro view transitions
+        document.addEventListener('astro:after-swap', function() {
+          loadGiscus()
+        })
+      })()
+    </script>
+  )
+}
+
+<style>
+  .giscus-container {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
