@@ -6,4 +6,4 @@ title: '关于'
 
 这里是我分享技术心得、生活随笔和各种兴趣爱好的地方。
 
-[GitHub](https://github.com/fishcat37)
+[My GitHub](https://github.com/fishcat37)
