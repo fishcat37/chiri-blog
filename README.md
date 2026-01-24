@@ -1,62 +1,24 @@
-# Chiri 🌸
+# Fishcat's Blog
 
-![screenshot-light](public/screenshots/screenshot-light.png)
-![screenshot-dark](public/screenshots/screenshot-dark.png)
+fishcat 的个人博客，分享技术、生活与兴趣爱好。
 
-Chiri is a minimal blog theme built with [Astro](https://astro.build), offering customization options while preserving its clean aesthetic.
+## 技术栈
 
-Check the [demo](https://chiri.the3ash.com/) for more details.
+- [Astro](https://astro.build) - 静态站点生成器
+- [Chiri](https://github.com/the3ash/astro-chiri) - 极简博客主题
 
-## Features
+## 本地开发
 
-- [x] Build with Astro
-- [x] Responsive
-- [x] Light / Dark mode
-- [x] MDX
-- [x] KaTeX
-- [x] Sitemap
-- [x] OpenGraph
-- [x] RSS
+```bash
+pnpm install    # 安装依赖
+pnpm dev        # 启动开发服务器
+pnpm build      # 构建生产版本
+pnpm new <标题> # 创建新文章
+```
 
-## Getting Started
+## 致谢
 
-1. [Fork](https://github.com/the3ash/astro-chiri/fork) this repository, or use this template to [create a new repository](https://github.com/new?template_name=astro-chiri&template_owner=the3ash).
-
-2. Run the following commands:
-
-   ```bash
-   git clone <your-repo-url>
-
-   cd <your-repo-name>
-
-   pnpm install
-
-   pnpm dev
-   ```
-
-3. Edit `src/config.ts` and `src/content/about/about.md` to your liking.
-
-4. Use `pnpm new <title>` to create new posts, or add your posts to `src/content/posts`.
-
-5. You need to set adapter as follows before deploying to Netlify, Vercel, or other platforms, but you can set `linkCard` to `false` in `src/config.ts` to skip this step:
-   - **Netlify**: `pnpm add @astrojs/netlify` and add `adapter: netlify()` in `astro.config.ts`.
-   - **Vercel**: `pnpm add @astrojs/vercel` and add `adapter: vercel()` in `astro.config.ts`.
-   - **Static (e.g. GitHub Pages)**: `pnpm add @astrojs/static` and add `adapter: static()` in `astro.config.ts`.
-   - Refer to [Astro Deployment Guides](https://docs.astro.build/en/guides/deploy/) for more details.
-
-&emsp;[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start) [![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new)
-
-## Commands
-
-- `pnpm new <title>` - Create a new post (use `_title` for drafts)
-- `pnpm update-theme` - Update the theme to the latest version
-
-## References
-
-- https://paco.me/
-- https://benji.org/
-- https://shud.in/
-- https://retypeset.radishzz.cc/
+本博客基于 [astro-chiri](https://github.com/the3ash/astro-chiri) 主题构建，感谢 [3ASH](https://github.com/the3ash) 创作的优雅极简主题，以及 [Astro](https://astro.build) 团队提供的出色框架。
 
 ## License
 
