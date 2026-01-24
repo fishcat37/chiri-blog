@@ -10,7 +10,11 @@ const posts = defineCollection({
       title: z.string(),
       // Transform string to Date object
       pubDate: z.coerce.date(),
-      image: z.string().optional()
+      image: z.string().optional(),
+      // Category for post classification
+      category: z.string().optional(),
+      // Tags for post labeling
+      tags: z.array(z.string()).optional()
     })
 })
 

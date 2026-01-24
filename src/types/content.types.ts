@@ -16,7 +16,15 @@ export interface TOCItem {
   index: number
 }
 
+// Category info interface
+export interface CategoryInfo {
+  name: string
+  slug: string
+  count: number
+}
+
 // PostList component props interface
 export interface PostListProps {
   posts: CollectionEntry<'posts'>[]
+  showCategory?: boolean
 }

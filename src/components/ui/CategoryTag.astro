@@ -1,0 +1,35 @@
+---
+type Props = {
+  category: string
+  size?: 'small' | 'medium'
+}
+
+const { category, size = 'small' } = Astro.props
+const href = `/category/${category}/`
+---
+
+<a href={href} class:list={['category-tag', size]}>
+  {category}
+</a>
+
+<style>
+  .category-tag {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: var(--font-size-s);
+    color: var(--text-secondary);
+    background-color: var(--border);
+    border-radius: 0.25rem;
+    text-decoration: none;
+    transition: opacity 0.15s ease-out;
+  }
+
+  .category-tag:hover {
+    opacity: 0.7;
+  }
+
+  .category-tag.medium {
+    padding: 0.25rem 0.75rem;
+    font-size: var(--font-size-m);
+  }
+</style>
