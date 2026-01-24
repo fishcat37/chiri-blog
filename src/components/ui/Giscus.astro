@@ -28,7 +28,21 @@ const siteUrl = themeConfig.site.website.replace(/\/$/, '')
     >
       (function() {
         function getThemeUrl() {
-          const isDark = document.documentElement.classList.contains('dark')
+          // Check multiple sources for theme detection
+          const htmlHasDark = document.documentElement.classList.contains('dark')
+          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const storedTheme = localStorage.getItem('chiri-theme')
+          
+          // Determine if dark mode: stored preference > html class > system preference
+          let isDark = false
+          if (storedTheme) {
+            isDark = storedTheme === 'dark'
+          } else if (htmlHasDark) {
+            isDark = true
+          } else {
+            isDark = systemPrefersDark
+          }
+          
           // Use relative path for local, absolute for production
           const basePath = window.location.hostname === 'localhost' 
             ? '' 
@@ -72,8 +86,20 @@ const siteUrl = themeConfig.site.website.replace(/\/$/, '')
           )
         }
 
-        // Initial load
-        loadGiscus()
+        // Wait for theme to be applied before loading Giscus
+        function initGiscus() {
+          // Small delay to ensure ThemeManager has applied the theme
+          setTimeout(loadGiscus, 50)
+        }
+
+        // Initial load - use astro:page-load for proper timing
+        if (document.readyState === 'complete') {
+          initGiscus()
+        } else {
+          document.addEventListener('astro:page-load', initGiscus, { once: true })
+          // Fallback for non-Astro navigation
+          document.addEventListener('DOMContentLoaded', initGiscus, { once: true })
+        }
 
         // Watch for theme changes
         const observer = new MutationObserver(function(mutations) {
@@ -89,9 +115,14 @@ const siteUrl = themeConfig.site.website.replace(/\/$/, '')
           attributeFilter: ['class'] 
         })
 
+        // Also listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+          updateGiscusTheme()
+        })
+
         // Handle Astro view transitions
         document.addEventListener('astro:after-swap', function() {
-          loadGiscus()
+          initGiscus()
         })
       })()
     </script>
