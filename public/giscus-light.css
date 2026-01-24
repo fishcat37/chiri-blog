@@ -154,7 +154,7 @@ main {
 
 /* Emoji reactions - more subtle */
 .gsc-reactions {
-  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-top: none !important;
 }
 
 /* Header separator */
