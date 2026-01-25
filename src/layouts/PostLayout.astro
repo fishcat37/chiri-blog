@@ -79,10 +79,14 @@ const formattedDate = formatDate(pubDate)
         </div>
         <article class="content" data-pagefind-body>
           <slot />
-          {/* Searchable keywords at the end, hidden from UI */}
-          <div style="display:none" aria-hidden="true">
-            {title} {formattedDate} {category} {tags?.join(' ')}
-          </div>
+        </article>
+        {/* Hidden searchable metadata outside of the main article body but still indexed if needed */}
+        <div style="display:none" aria-hidden="true" data-pagefind-body>
+          {title} {formattedDate} {category} {tags?.join(' ')}
+        </div>
+        <div data-pagefind-ignore>
+          <Giscus />
+        </div>
         </article>
         <div data-pagefind-ignore>
           <Giscus />

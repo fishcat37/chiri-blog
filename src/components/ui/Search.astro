@@ -131,44 +131,37 @@
           item.href = data.url;
           item.className = 'result-item';
           
-          // Manual highlight for title
-          let title = data.meta.title || 'Untitled';
-          if (query.length > 0) {
-            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // Try exact match first
-            const exactRegex = new RegExp(`(${escapedQuery})`, 'gi');
-            if (exactRegex.test(title)) {
-              title = title.replace(exactRegex, '<mark>$1</mark>');
-            } else {
-              // Highlight parts but only if they are not single chars/digits
-              const parts = query.split(/[.\s-]+/).filter(p => p.length > 1);
-              if (parts.length > 0) {
-                const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-                const partRegex = new RegExp(`(${pattern})`, 'gi');
-                title = title.replace(partRegex, '<mark>$1</mark>');
-              }
-            }
-          }
+          // Manual highlight helper function
+          const highlightText = (text, query) => {
+            if (!query || !text) return text;
+            const parts = query.split(/[.\s-]+/).filter(p => p.length > 0);
+            if (parts.length === 0) return text;
+            const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+            const regex = new RegExp(`(${pattern})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+          };
+
+          // Highlight title
+          const highlightedTitle = highlightText(data.meta.title || 'Untitled', query);
 
           // Metadata line (Date, Category, Tags)
           const metaItems = [];
-          if (data.meta.date) metaItems.push(`<span class="res-date">${data.meta.date}</span>`);
-          if (data.meta.category) metaItems.push(`<span class="res-category">${data.meta.category}</span>`);
+          if (data.meta.date) metaItems.push(`<span class="res-date">${highlightText(data.meta.date, query)}</span>`);
+          if (data.meta.category) metaItems.push(`<span class="res-category">${highlightText(data.meta.category, query)}</span>`);
           if (data.meta.tags) {
-            // Clean up tags to avoid double ##
-            const tags = data.meta.tags.split(',')
-              .map(t => t.trim().replace(/^#+/, '')) // Remove all leading #
+            const cleanTags = data.meta.tags.split(',')
+              .map(t => t.trim().replace(/^#+/, ''))
               .filter(t => t)
               .map(t => `#${t}`)
               .join(' ');
-            metaItems.push(`<span class="res-tags">${tags}</span>`);
+            metaItems.push(`<span class="res-tags">${highlightText(cleanTags, query)}</span>`);
           }
           const metaHtml = metaItems.length > 0 
             ? `<div class="result-meta">${metaItems.join(' <span class="res-sep">·</span> ')}</div>` 
             : '';
 
           item.innerHTML = `
-            <h3>${title}</h3>
+            <h3>${highlightedTitle}</h3>
             ${metaHtml}
             <p>${data.excerpt}</p>
           `;
