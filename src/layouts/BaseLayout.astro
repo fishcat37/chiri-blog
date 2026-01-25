@@ -23,6 +23,7 @@ const finalWidth = shouldUseCustomWidth ? `${widthValue}rem` : '25rem'
     <ThemeManager />
     {fadeAnimation && <ClientRouter />}
     <slot name="head" />
+    <Analytics />
   </head>
   <body
     data-centered={themeConfig.general.centeredLayout}
@@ -44,7 +45,6 @@ const finalWidth = shouldUseCustomWidth ? `${widthValue}rem` : '25rem'
         </div>
       )
     }
-    <Analytics />
   </body>
 </html>
 
