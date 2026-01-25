@@ -35,7 +35,7 @@ const ogImage = `/open-graph/${postSlug}.png`
     ogImage={ogImage}
     slot="head"
   />
-  <div class="post-container" data-pagefind-body>
+  <div class="post-container">
     <main>
       <div class="prose">
         <GradientMask />
@@ -44,9 +44,11 @@ const ogImage = `/open-graph/${postSlug}.png`
           {themeConfig.post.toc && <TableOfContents toc={toc} />}
         </div>
         <div class="title">
-          <h1 data-pagefind-meta="title">{title}</h1>
-          <div class="meta" data-pagefind-ignore>
-            <FormattedDate date={pubDate} context="post" />
+          <h1 data-pagefind-meta="title" data-pagefind-weight="10">{title}</h1>
+          <div class="meta">
+            <div data-pagefind-body data-pagefind-weight="1">
+              <FormattedDate date={pubDate} context="post" />
+            </div>
             {
               category && (
                 <>
@@ -64,11 +66,9 @@ const ogImage = `/open-graph/${postSlug}.png`
               )
             }
           </div>
-          <div data-pagefind-ignore>
-            {tags && tags.length > 0 && <TagList tags={tags} />}
-          </div>
+          {tags && tags.length > 0 && <TagList tags={tags} />}
         </div>
-        <article class="content">
+        <article class="content" data-pagefind-body>
           <slot />
         </article>
         <div data-pagefind-ignore>

@@ -24,13 +24,14 @@
 <script is:inline>
   (function() {
     let pagefind;
+    let searchId = 0;
 
     async function initPagefind() {
       if (pagefind) return pagefind;
       try {
         pagefind = await import('/pagefind/pagefind.js');
         await pagefind.options({
-          "excerptLength": 20
+          "excerptLength": 15
         });
         return pagefind;
       } catch (e) {
@@ -47,10 +48,7 @@
       const input = document.getElementById('search-input');
       const resultsContainer = document.getElementById('search-results');
 
-      if (!trigger || !modal || !input || !resultsContainer) {
-        console.warn('Search elements not found');
-        return;
-      }
+      if (!trigger || !modal || !input || !resultsContainer) return;
 
       function openModal() {
         modal.classList.add('active');
@@ -79,54 +77,71 @@
       }
 
       input.oninput = async (e) => {
-        const query = e.target.value;
-        if (!query.trim()) {
+        const query = e.target.value.trim();
+        const currentSearchId = ++searchId;
+        
+        if (!query) {
           resultsContainer.innerHTML = '';
           return;
         }
 
         const pf = await initPagefind();
-        if (!pf) return;
+        if (!pf || currentSearchId !== searchId) return;
 
         const search = await pf.search(query);
+        if (currentSearchId !== searchId) return;
+
         if (search.results.length === 0) {
           resultsContainer.innerHTML = '<p class="no-results">未找到相关内容</p>';
           return;
         }
 
+        // Get data for top results
+        const rawResults = await Promise.all(search.results.slice(0, 10).map(r => r.data()));
+        if (currentSearchId !== searchId) return;
+
+        // De-duplicate by normalized URL
+        const seen = new Set();
+        const filteredResults = [];
+        
+        for (const data of rawResults) {
+          // Robust normalization: remove scheme, domain, trailing slashes, and index.html
+          let url = data.url
+            .replace(/https?:\/\/[^\/]+/, '') // Remove domain if absolute
+            .split('?')[0] // Remove query params
+            .split('#')[0] // Remove hashes
+            .replace(/\/index\.html$/, '')
+            .replace(/\/$/, '');
+          
+          if (url === '') url = '/';
+          
+          if (!seen.has(url)) {
+            seen.add(url);
+            filteredResults.push({ ...data, url });
+          }
+          if (filteredResults.length >= 6) break;
+        }
+
         resultsContainer.innerHTML = '';
         
-        // De-duplicate results by URL to avoid multiple entries for the same page
-        const seenUrls = new Set();
-        const results = [];
-        
-        for (const res of search.results) {
-          if (results.length >= 8) break;
-          const data = await res.data();
-          
-          // Normalize URL: remove trailing slash, trailing index.html
-          let normalizedUrl = data.url.replace(/\/$/, '').replace(/\/index\.html$/, '');
-          if (normalizedUrl === '') normalizedUrl = '/';
-          
-          if (seenUrls.has(normalizedUrl)) continue;
-          seenUrls.add(normalizedUrl);
-          
-          results.push({ ...data, url: normalizedUrl });
-        }
-        
-        results.forEach(data => {
+        filteredResults.forEach(data => {
           const item = document.createElement('a');
           item.href = data.url;
           item.className = 'result-item';
           
-          // Highlight query in title manually
-          let highlightedTitle = data.meta.title;
-          const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const regex = new RegExp(`(${escapedQuery})`, 'gi');
-          highlightedTitle = highlightedTitle.replace(regex, '<mark>$1</mark>');
+          // Manual highlight for title
+          let title = data.meta.title || 'Untitled';
+          if (query.length > 0) {
+            // Escape regex special chars and match whole query
+            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Try to match the whole query first, then parts if needed? 
+            // Actually, Pagefind already did the matching, we just want to highlight what they typed.
+            const regex = new RegExp(`(${escapedQuery})`, 'gi');
+            title = title.replace(regex, '<mark>$1</mark>');
+          }
 
           item.innerHTML = `
-            <h3>${highlightedTitle}</h3>
+            <h3>${title}</h3>
             <p>${data.excerpt}</p>
           `;
           resultsContainer.appendChild(item);
