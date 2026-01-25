@@ -150,7 +150,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1000;
+    z-index: 9999;
     display: none;
     align-items: flex-start;
     justify-content: center;
@@ -168,9 +168,9 @@
     width: 100%;
     height: 100%;
     background: var(--bg);
-    opacity: 0.8;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    opacity: 0.98;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
   .modal-content {
@@ -181,6 +181,10 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    background: var(--bg);
+    padding: 1rem;
+    border-radius: 8px;
+    /* Removed redundant flex-direction if any */
   }
 
   .search-input-wrapper {
