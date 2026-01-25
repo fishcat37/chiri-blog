@@ -87,10 +87,13 @@
         const pf = await initPagefind();
         if (!pf || currentSearchId !== searchId) return;
 
-        // Try searching with spaces instead of dots to help Pagefind match tokenized dates
+        // Try original search first
         let search = await pf.search(query);
-        if (search.results.length === 0 && query.includes('.')) {
-          search = await pf.search(query.replace(/\./g, ' '));
+        
+        // FALLBACK: If no results and contains separators, try replacing with spaces
+        if (search.results.length === 0 && /[.\-\/]/.test(query)) {
+          const fallbackQuery = query.replace(/[.\-\/]/g, ' ');
+          search = await pf.search(fallbackQuery);
         }
         
         if (currentSearchId !== searchId) return;
@@ -128,7 +131,8 @@
             if (!q || !text) return text;
             const parts = q.split(/[.\s-]+/).filter(p => p.length > 0);
             if (parts.length === 0) {
-               const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+               const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+               const regex = new RegExp(`(${escapedQ})`, 'gi');
                return text.replace(regex, '<mark>$1</mark>');
             }
             const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
