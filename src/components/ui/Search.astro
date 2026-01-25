@@ -22,102 +22,105 @@
 </div>
 
 <script is:inline>
-  let pagefind;
+  (function() {
+    let pagefind;
 
-  async function initPagefind() {
-    if (pagefind) return pagefind;
-    try {
-      pagefind = await import('/pagefind/pagefind.js');
-      await pagefind.options({
-        "excerptLength": 20
-      });
-      return pagefind;
-    } catch (e) {
-      console.error('Failed to load pagefind:', e);
-      return null;
-    }
-  }
-
-  const trigger = document.getElementById('search-trigger');
-  const modal = document.getElementById('search-modal');
-  const backdrop = modal?.querySelector('.modal-backdrop');
-  const input = document.getElementById('search-input');
-  const resultsContainer = document.getElementById('search-results');
-
-  function openModal() {
-    modal?.classList.add('active');
-    document.body.classList.add('search-open');
-    setTimeout(() => input?.focus(), 50);
-    initPagefind();
-  }
-
-  function closeModal() {
-    modal?.classList.remove('active');
-    document.body.classList.remove('search-open');
-    if (input) input.value = '';
-    if (resultsContainer) resultsContainer.innerHTML = '';
-  }
-
-  trigger?.addEventListener('click', openModal);
-  backdrop?.addEventListener('click', closeModal);
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault();
-      openModal();
-    }
-    if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
-      e.preventDefault();
-      openModal();
-    }
-    if (e.key === 'Escape') {
-      closeModal();
-    }
-  });
-
-  input?.addEventListener('input', async (e) => {
-    const query = e.target.value;
-    if (!query.trim()) {
-      if (resultsContainer) resultsContainer.innerHTML = '';
-      return;
+    async function initPagefind() {
+      if (pagefind) return pagefind;
+      try {
+        pagefind = await import('/pagefind/pagefind.js');
+        await pagefind.options({
+          "excerptLength": 20
+        });
+        return pagefind;
+      } catch (e) {
+        console.error('Failed to load pagefind:', e);
+        return null;
+      }
     }
 
-    const pf = await initPagefind();
-    if (!pf) return;
+    function setupSearch() {
+      const trigger = document.getElementById('search-trigger');
+      const modal = document.getElementById('search-modal');
+      const backdrop = modal?.querySelector('.modal-backdrop');
+      const input = document.getElementById('search-input');
+      const resultsContainer = document.getElementById('search-results');
 
-    const search = await pf.search(query);
-    if (!resultsContainer) return;
+      if (!trigger || !modal || !input || !resultsContainer) return;
 
-    if (search.results.length === 0) {
-      resultsContainer.innerHTML = '<p class="no-results">未找到相关内容</p>';
-      return;
+      function openModal() {
+        modal?.classList.add('active');
+        document.body.classList.add('search-open');
+        setTimeout(() => input?.focus(), 50);
+        initPagefind();
+      }
+
+      function closeModal() {
+        modal?.classList.remove('active');
+        document.body.classList.remove('search-open');
+        if (input) input.value = '';
+        if (resultsContainer) resultsContainer.innerHTML = '';
+      }
+
+      // Cleanup existing listeners if any (though in astro:page-load we usually just re-bind)
+      trigger.onclick = openModal;
+      if (backdrop) backdrop.onclick = closeModal;
+
+      input.oninput = async (e) => {
+        const query = e.target.value;
+        if (!query.trim()) {
+          resultsContainer.innerHTML = '';
+          return;
+        }
+
+        const pf = await initPagefind();
+        if (!pf) return;
+
+        const search = await pf.search(query);
+        if (search.results.length === 0) {
+          resultsContainer.innerHTML = '<p class="no-results">未找到相关内容</p>';
+          return;
+        }
+
+        resultsContainer.innerHTML = '';
+        const results = await Promise.all(search.results.slice(0, 8).map((r) => r.data()));
+        
+        results.forEach(data => {
+          const item = document.createElement('a');
+          item.href = data.url;
+          item.className = 'result-item';
+          item.innerHTML = `
+            <h3>${data.meta.title}</h3>
+            <p>${data.excerpt}</p>
+          `;
+          resultsContainer.appendChild(item);
+        });
+      };
+
+      // Keyboard shortcuts (attach to window/document only once or update safely)
+      const handleKeydown = (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          openModal();
+        }
+        if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          openModal();
+        }
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
+
+      // Remove old listener to avoid duplicates
+      document.removeEventListener('keydown', window._handleSearchKeydown);
+      window._handleSearchKeydown = handleKeydown;
+      document.addEventListener('keydown', window._handleSearchKeydown);
     }
 
-    resultsContainer.innerHTML = '';
-    const results = await Promise.all(search.results.slice(0, 8).map((r) => r.data()));
-    
-    results.forEach(data => {
-      const item = document.createElement('a');
-      item.href = data.url;
-      item.className = 'result-item';
-      item.innerHTML = `
-        <h3>${data.meta.title}</h3>
-        <p>${data.excerpt}</p>
-      `;
-      resultsContainer.appendChild(item);
-    });
-  });
-
-  // Handle Astro transitions
-  document.addEventListener('astro:after-swap', () => {
-    const newTrigger = document.getElementById('search-trigger');
-    const newModal = document.getElementById('search-modal');
-    const newBackdrop = newModal?.querySelector('.modal-backdrop');
-    
-    newTrigger?.addEventListener('click', openModal);
-    newBackdrop?.addEventListener('click', closeModal);
-  });
+    // Initialize on first load and after view transitions
+    document.addEventListener('astro:page-load', setupSearch);
+  })();
 </script>
 
 <style>
@@ -184,7 +187,6 @@
     background: var(--bg);
     padding: 1rem;
     border-radius: 8px;
-    /* Removed redundant flex-direction if any */
   }
 
   .search-input-wrapper {
@@ -228,12 +230,17 @@
   }
 
   .result-item {
-    text-decoration: none;
-    color: var(--text-primary);
+    text-decoration: none !important;
+    color: var(--text-primary) !important;
     padding: 1rem;
     border: 1px solid transparent;
     border-radius: 4px;
     transition: all 0.2s ease;
+    display: block;
+  }
+
+  .result-item:visited {
+    color: var(--text-primary) !important;
   }
 
   .result-item:hover {
@@ -245,6 +252,7 @@
     margin: 0 0 0.5rem 0;
     font-size: 1rem;
     font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
   }
 
   .result-item p {
@@ -252,6 +260,14 @@
     font-size: 0.875rem;
     color: var(--text-secondary);
     line-height: 1.4;
+  }
+
+  /* Pagefind highlight style */
+  .result-item :global(mark) {
+    background-color: var(--mark) !important;
+    color: var(--text-primary) !important;
+    border-radius: 2px;
+    padding: 0 2px;
   }
 
   .no-results {
