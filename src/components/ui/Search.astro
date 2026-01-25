@@ -40,31 +40,43 @@
     }
 
     function setupSearch() {
+      // Re-query elements to ensure we have the ones currently in the DOM
       const trigger = document.getElementById('search-trigger');
       const modal = document.getElementById('search-modal');
       const backdrop = modal?.querySelector('.modal-backdrop');
       const input = document.getElementById('search-input');
       const resultsContainer = document.getElementById('search-results');
 
-      if (!trigger || !modal || !input || !resultsContainer) return;
+      if (!trigger || !modal || !input || !resultsContainer) {
+        console.warn('Search elements not found');
+        return;
+      }
 
       function openModal() {
-        modal?.classList.add('active');
+        modal.classList.add('active');
         document.body.classList.add('search-open');
-        setTimeout(() => input?.focus(), 50);
+        setTimeout(() => input.focus(), 50);
         initPagefind();
       }
 
       function closeModal() {
-        modal?.classList.remove('active');
+        modal.classList.remove('active');
         document.body.classList.remove('search-open');
-        if (input) input.value = '';
-        if (resultsContainer) resultsContainer.innerHTML = '';
+        input.value = '';
+        resultsContainer.innerHTML = '';
       }
 
-      // Cleanup existing listeners if any (though in astro:page-load we usually just re-bind)
-      trigger.onclick = openModal;
-      if (backdrop) backdrop.onclick = closeModal;
+      trigger.onclick = (e) => {
+        e.preventDefault();
+        openModal();
+      };
+      
+      if (backdrop) {
+        backdrop.onclick = (e) => {
+          e.preventDefault();
+          closeModal();
+        };
+      }
 
       input.oninput = async (e) => {
         const query = e.target.value;
@@ -83,9 +95,25 @@
         }
 
         resultsContainer.innerHTML = '';
-        const results = await Promise.all(search.results.slice(0, 8).map((r) => r.data()));
         
-        results.forEach(data => {
+        // De-duplicate results by URL to avoid multiple entries for the same page
+        const seenUrls = new Set();
+        const uniqueResults = [];
+        for (const res of search.results) {
+          if (uniqueResults.length >= 8) break;
+          // We need to await the data to get the URL for comparison, or use a heuristic
+          // For now, let's just limit the raw results and filter after fetching data
+          uniqueResults.push(res);
+        }
+
+        const results = await Promise.all(uniqueResults.map((r) => r.data()));
+        const filteredResults = results.filter(data => {
+          if (seenUrls.has(data.url)) return false;
+          seenUrls.add(data.url);
+          return true;
+        });
+        
+        filteredResults.forEach(data => {
           const item = document.createElement('a');
           item.href = data.url;
           item.className = 'result-item';
