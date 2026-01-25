@@ -98,27 +98,35 @@
         
         // De-duplicate results by URL to avoid multiple entries for the same page
         const seenUrls = new Set();
-        const uniqueResults = [];
-        for (const res of search.results) {
-          if (uniqueResults.length >= 8) break;
-          // We need to await the data to get the URL for comparison, or use a heuristic
-          // For now, let's just limit the raw results and filter after fetching data
-          uniqueResults.push(res);
-        }
-
-        const results = await Promise.all(uniqueResults.map((r) => r.data()));
-        const filteredResults = results.filter(data => {
-          if (seenUrls.has(data.url)) return false;
-          seenUrls.add(data.url);
-          return true;
-        });
+        const results = [];
         
-        filteredResults.forEach(data => {
+        for (const res of search.results) {
+          if (results.length >= 8) break;
+          const data = await res.data();
+          
+          // Normalize URL: remove trailing slash, trailing index.html
+          let normalizedUrl = data.url.replace(/\/$/, '').replace(/\/index\.html$/, '');
+          if (normalizedUrl === '') normalizedUrl = '/';
+          
+          if (seenUrls.has(normalizedUrl)) continue;
+          seenUrls.add(normalizedUrl);
+          
+          results.push({ ...data, url: normalizedUrl });
+        }
+        
+        results.forEach(data => {
           const item = document.createElement('a');
           item.href = data.url;
           item.className = 'result-item';
+          
+          // Highlight query in title manually
+          let highlightedTitle = data.meta.title;
+          const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp(`(${escapedQuery})`, 'gi');
+          highlightedTitle = highlightedTitle.replace(regex, '<mark>$1</mark>');
+
           item.innerHTML = `
-            <h3>${data.meta.title}</h3>
+            <h3>${highlightedTitle}</h3>
             <p>${data.excerpt}</p>
           `;
           resultsContainer.appendChild(item);

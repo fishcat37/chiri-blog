@@ -39,13 +39,13 @@ const ogImage = `/open-graph/${postSlug}.png`
     <main>
       <div class="prose">
         <GradientMask />
-        <BackButton />
         <div data-pagefind-ignore>
+          <BackButton />
           {themeConfig.post.toc && <TableOfContents toc={toc} />}
         </div>
         <div class="title">
           <h1 data-pagefind-meta="title">{title}</h1>
-          <div class="meta">
+          <div class="meta" data-pagefind-ignore>
             <FormattedDate date={pubDate} context="post" />
             {
               category && (
@@ -64,12 +64,16 @@ const ogImage = `/open-graph/${postSlug}.png`
               )
             }
           </div>
-          {tags && tags.length > 0 && <TagList tags={tags} />}
+          <div data-pagefind-ignore>
+            {tags && tags.length > 0 && <TagList tags={tags} />}
+          </div>
         </div>
         <article class="content">
           <slot />
         </article>
-        <Giscus />
+        <div data-pagefind-ignore>
+          <Giscus />
+        </div>
       </div>
     </main>
     <ImageOptimizer />
