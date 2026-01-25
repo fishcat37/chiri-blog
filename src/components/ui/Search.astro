@@ -31,7 +31,7 @@
       try {
         pagefind = await import('/pagefind/pagefind.js');
         await pagefind.options({
-          "excerptLength": 15
+          "excerptLength": 20
         });
         return pagefind;
       } catch (e) {
@@ -87,10 +87,8 @@
         const pf = await initPagefind();
         if (!pf || currentSearchId !== searchId) return;
 
-        // Process query: replace dots with spaces to allow matching date parts
-        const processedQuery = query.replace(/\./g, ' ');
-        const search = await pf.search(processedQuery);
-        
+        // Search with dots allowed, Pagefind handles dots better when not forced to spaces
+        const search = await pf.search(query);
         if (currentSearchId !== searchId) return;
 
         if (search.results.length === 0) {
@@ -125,7 +123,11 @@
           const highlightText = (text, q) => {
             if (!q || !text) return text;
             const parts = q.split(/[.\s-]+/).filter(p => p.length > 0);
-            if (parts.length === 0) return text;
+            if (parts.length === 0) {
+              // Try exact match if no split parts
+              const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+              return text.replace(regex, '<mark>$1</mark>');
+            }
             const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
             const regex = new RegExp(`(${pattern})`, 'gi');
             return text.replace(regex, '<mark>$1</mark>');

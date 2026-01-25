@@ -21,13 +21,11 @@ import CategoryTag from '@/components/ui/CategoryTag.astro'
 import TagList from '@/components/ui/TagList.astro'
 
 import { themeConfig } from '@/config'
-import { formatDate } from '@/utils/date'
 
 const { title, pubDate, category, tags, readingTime, toc } = Astro.props as PostLayoutProps
 
 const postSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || ''
 const ogImage = `/open-graph/${postSlug}.png`
-const formattedDate = formatDate(pubDate)
 ---
 
 <BaseLayout title={`${title} · ${themeConfig.site.title}`} description={themeConfig.site.description} type="post">
@@ -39,12 +37,13 @@ const formattedDate = formatDate(pubDate)
   />
   <div class="post-container">
     <main>
-      <div class="prose">
+      <div class="prose" data-pagefind-body>
         <div data-pagefind-ignore>
           <GradientMask />
           <BackButton />
           {themeConfig.post.toc && <TableOfContents toc={toc} />}
         </div>
+        
         <div class="title">
           <h1 data-pagefind-meta="title" data-pagefind-weight="10">{title}</h1>
           <div class="meta">
@@ -76,9 +75,11 @@ const formattedDate = formatDate(pubDate)
             </div>
           )}
         </div>
-        <article class="content" data-pagefind-body>
+
+        <article class="content">
           <slot />
         </article>
+
         <div data-pagefind-ignore>
           <Giscus />
         </div>
