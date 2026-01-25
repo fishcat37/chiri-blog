@@ -64,7 +64,7 @@ const ogImage = `/open-graph/${postSlug}.png`
           </div>
           {tags && tags.length > 0 && <TagList tags={tags} />}
         </div>
-        <article class="content">
+        <article class="content" data-pagefind-body>
           <slot />
         </article>
         <Giscus />
