@@ -87,13 +87,16 @@
         const pf = await initPagefind();
         if (!pf || currentSearchId !== searchId) return;
 
-        // Try original search first
+        // MULTI-STRATEGY SEARCH:
+        // Try searching with literal first, then fallback to fragmented if symbols are present
         let search = await pf.search(query);
         
-        // FALLBACK: If no results and contains separators, try replacing with spaces
         if (search.results.length === 0 && /[.\-\/]/.test(query)) {
-          const fallbackQuery = query.replace(/[.\-\/]/g, ' ');
-          search = await pf.search(fallbackQuery);
+          const processedQuery = query.replace(/[.\-\/]/g, ' ');
+          const altSearch = await pf.search(processedQuery);
+          if (altSearch.results.length > 0) {
+            search = altSearch;
+          }
         }
         
         if (currentSearchId !== searchId) return;
@@ -129,13 +132,15 @@
           
           const highlightText = (text, q) => {
             if (!q || !text) return text;
-            const parts = q.split(/[.\s-]+/).filter(p => p.length > 0);
+            // Split by symbols to catch parts of n-gram or 1.25
+            const parts = q.split(/[.\s\-\/]+/).filter(p => p.length > 0);
             if (parts.length === 0) {
-               const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-               const regex = new RegExp(`(${escapedQ})`, 'gi');
+               const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
                return text.replace(regex, '<mark>$1</mark>');
             }
-            const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+            // Sort by length to match longest tokens first
+            const pattern = [...new Set(parts)].sort((a,b) => b.length - a.length)
+              .map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
             const regex = new RegExp(`(${pattern})`, 'gi');
             return text.replace(regex, '<mark>$1</mark>');
           };

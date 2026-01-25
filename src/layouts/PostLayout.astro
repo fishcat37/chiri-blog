@@ -21,13 +21,11 @@ import CategoryTag from '@/components/ui/CategoryTag.astro'
 import TagList from '@/components/ui/TagList.astro'
 
 import { themeConfig } from '@/config'
-import { formatDate } from '@/utils/date'
 
 const { title, pubDate, category, tags, readingTime, toc } = Astro.props as PostLayoutProps
 
 const postSlug = Astro.url.pathname.split('/').filter(Boolean).pop() || ''
 const ogImage = `/open-graph/${postSlug}.png`
-const formattedDate = formatDate(pubDate)
 ---
 
 <BaseLayout title={`${title} · ${themeConfig.site.title}`} description={themeConfig.site.description} type="post">
@@ -39,7 +37,7 @@ const formattedDate = formatDate(pubDate)
   />
   <div class="post-container">
     <main>
-      <div class="prose">
+      <div class="prose" data-pagefind-body>
         <div data-pagefind-ignore>
           <GradientMask />
           <BackButton />
@@ -56,7 +54,7 @@ const formattedDate = formatDate(pubDate)
               category && (
                 <>
                   <span class="separator" data-pagefind-ignore>·</span>
-                  <div data-pagefind-meta="category" data-pagefind-weight="8">
+                  <div data-pagefind-meta="category" data-pagefind-weight="8" data-pagefind-ignore>
                     <CategoryTag category={category} />
                   </div>
                 </>
@@ -72,13 +70,13 @@ const formattedDate = formatDate(pubDate)
             }
           </div>
           {tags && tags.length > 0 && (
-            <div data-pagefind-meta="tags" data-pagefind-weight="8">
+            <div data-pagefind-meta="tags" data-pagefind-weight="8" data-pagefind-ignore>
               <TagList tags={tags} />
             </div>
           )}
         </div>
 
-        <article class="content" data-pagefind-body>
+        <article class="content">
           <slot />
         </article>
 
