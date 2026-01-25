@@ -132,9 +132,13 @@
           // Manual highlight for title
           let title = data.meta.title || 'Untitled';
           if (query.length > 0) {
-            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(`(${escapedQuery})`, 'gi');
-            title = title.replace(regex, '<mark>$1</mark>');
+            // Split query by common separators to highlight multiple parts
+            const parts = query.split(/[.\s-]+/).filter(p => p.length > 0);
+            if (parts.length > 0) {
+              const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+              const regex = new RegExp(`(${pattern})`, 'gi');
+              title = title.replace(regex, '<mark>$1</mark>');
+            }
           }
 
           // Metadata line (Date, Category, Tags)
@@ -142,7 +146,12 @@
           if (data.meta.date) metaItems.push(`<span class="res-date">${data.meta.date}</span>`);
           if (data.meta.category) metaItems.push(`<span class="res-category">${data.meta.category}</span>`);
           if (data.meta.tags) {
-            const tags = data.meta.tags.split(',').map(t => `#${t.trim()}`).join(' ');
+            // Clean up tags to avoid double ##
+            const tags = data.meta.tags.split(',')
+              .map(t => t.trim())
+              .filter(t => t)
+              .map(t => t.startsWith('#') ? t : `#${t}`)
+              .join(' ');
             metaItems.push(`<span class="res-tags">${tags}</span>`);
           }
           const metaHtml = metaItems.length > 0 

@@ -37,7 +37,7 @@ const ogImage = `/open-graph/${postSlug}.png`
   />
   <div class="post-container">
     <main>
-      <div class="prose" data-pagefind-body>
+      <div class="prose">
         <div data-pagefind-ignore>
           <GradientMask />
           <BackButton />
@@ -74,8 +74,12 @@ const ogImage = `/open-graph/${postSlug}.png`
             </div>
           )}
         </div>
-        <article class="content">
+        <article class="content" data-pagefind-body>
           <slot />
+          {/* Hidden searchable metadata at the end to allow searching by date/category/tag without affecting excerpt start */}
+          <div style="display:none" aria-hidden="true">
+            {title} {pubDate} {category} {tags?.join(' ')}
+          </div>
         </article>
         <div data-pagefind-ignore>
           <Giscus />
