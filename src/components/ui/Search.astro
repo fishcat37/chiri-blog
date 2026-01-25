@@ -87,8 +87,10 @@
         const pf = await initPagefind();
         if (!pf || currentSearchId !== searchId) return;
 
-        // Search with dots allowed, Pagefind handles dots better when not forced to spaces
-        const search = await pf.search(query);
+        // PRE-PROCESS: Convert symbols to spaces to match tokenized dates
+        const processedQuery = query.replace(/[.\-\/]/g, ' ');
+        const search = await pf.search(processedQuery);
+        
         if (currentSearchId !== searchId) return;
 
         if (search.results.length === 0) {
@@ -120,14 +122,12 @@
           item.href = data.url;
           item.className = 'result-item';
           
+          // Manual highlight function
           const highlightText = (text, q) => {
             if (!q || !text) return text;
+            // Split by space/dot to highlight multiple components
             const parts = q.split(/[.\s-]+/).filter(p => p.length > 0);
-            if (parts.length === 0) {
-              // Try exact match if no split parts
-              const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-              return text.replace(regex, '<mark>$1</mark>');
-            }
+            if (parts.length === 0) return text;
             const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
             const regex = new RegExp(`(${pattern})`, 'gi');
             return text.replace(regex, '<mark>$1</mark>');
