@@ -37,37 +37,52 @@ const ogImage = `/open-graph/${postSlug}.png`
   />
   <div class="post-container">
     <main>
-      <div class="prose">
-        <GradientMask />
-        <BackButton />
-        {themeConfig.post.toc && <TableOfContents toc={toc} />}
+      <div class="prose" data-pagefind-body>
+        <div data-pagefind-ignore>
+          <GradientMask />
+          <BackButton />
+          {themeConfig.post.toc && <TableOfContents toc={toc} />}
+        </div>
+        
         <div class="title">
-          <h1>{title}</h1>
+          <h1 data-pagefind-meta="title" data-pagefind-weight="10">{title}</h1>
           <div class="meta">
-            <FormattedDate date={pubDate} context="post" />
+            <div data-pagefind-meta="date" data-pagefind-weight="9">
+              <FormattedDate date={pubDate} context="post" />
+            </div>
             {
               category && (
                 <>
-                  <span class="separator">·</span>
-                  <CategoryTag category={category} />
+                  <span class="separator" data-pagefind-ignore>·</span>
+                  <div data-pagefind-meta="category" data-pagefind-weight="8" data-pagefind-ignore>
+                    <CategoryTag category={category} />
+                  </div>
                 </>
               )
             }
             {
               themeConfig.post.readingTime && readingTime && (
-                <span class="reading-time">
+                <span class="reading-time" data-pagefind-ignore>
                   <span class="separator">·</span>
                   {readingTime.text}
                 </span>
               )
             }
           </div>
-          {tags && tags.length > 0 && <TagList tags={tags} />}
+          {tags && tags.length > 0 && (
+            <div data-pagefind-meta="tags" data-pagefind-weight="8" data-pagefind-ignore>
+              <TagList tags={tags} />
+            </div>
+          )}
         </div>
+
         <article class="content">
           <slot />
         </article>
-        <Giscus />
+
+        <div data-pagefind-ignore>
+          <Giscus />
+        </div>
       </div>
     </main>
     <ImageOptimizer />

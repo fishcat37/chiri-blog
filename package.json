@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "prebuild": "pnpm exec tsx scripts/toggle-proxy.ts",
-    "build": "pnpm run prebuild && astro build",
+    "build": "pnpm run prebuild && astro build && (pagefind --site .vercel/output/static || true)",
     "preview": "astro preview",
     "astro": "astro",
     "lint": "eslint .",
@@ -31,6 +31,7 @@
     "markdown-it": "^14.1.0",
     "mdast-util-to-string": "^4.0.0",
     "node-html-parser": "^7.0.2",
+    "pagefind": "^1.4.0",
     "reading-time": "^1.5.0",
     "rehype-katex": "^7.0.1",
     "remark-directive": "^4.0.0",
