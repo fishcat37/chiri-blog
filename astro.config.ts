@@ -10,6 +10,7 @@ import remarkReadingTime from './src/plugins/remark-reading-time.mjs'
 import rehypeCleanup from './src/plugins/rehype-cleanup.mjs'
 import rehypeImageProcessor from './src/plugins/rehype-image-processor.mjs'
 import rehypeCopyCode from './src/plugins/rehype-copy-code.mjs'
+import rehypeIgnoreFootnoteRefs from './src/plugins/rehype-ignore-footnote-refs.mjs'
 import remarkTOC from './src/plugins/remark-toc.mjs'
 import { themeConfig } from './src/config'
 import { imageConfig } from './src/utils/image-config'
@@ -31,7 +32,7 @@ export default defineConfig({
       wrap: false
     },
     remarkPlugins: [remarkMath, remarkDirective, remarkEmbeddedMedia, remarkReadingTime, remarkTOC],
-    rehypePlugins: [rehypeKatex, rehypeCleanup, rehypeImageProcessor, rehypeCopyCode]
+    rehypePlugins: [rehypeKatex, rehypeCleanup, rehypeImageProcessor, rehypeCopyCode, rehypeIgnoreFootnoteRefs]
   },
   integrations: [
     playformInline({

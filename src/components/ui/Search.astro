@@ -132,16 +132,26 @@
           // Manual highlight for title
           let title = data.meta.title || 'Untitled';
           if (query.length > 0) {
-            // Escape regex special chars and match whole query
             const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // Try to match the whole query first, then parts if needed? 
-            // Actually, Pagefind already did the matching, we just want to highlight what they typed.
             const regex = new RegExp(`(${escapedQuery})`, 'gi');
             title = title.replace(regex, '<mark>$1</mark>');
           }
 
+          // Metadata line (Date, Category, Tags)
+          const metaItems = [];
+          if (data.meta.date) metaItems.push(`<span class="res-date">${data.meta.date}</span>`);
+          if (data.meta.category) metaItems.push(`<span class="res-category">${data.meta.category}</span>`);
+          if (data.meta.tags) {
+            const tags = data.meta.tags.split(',').map(t => `#${t.trim()}`).join(' ');
+            metaItems.push(`<span class="res-tags">${tags}</span>`);
+          }
+          const metaHtml = metaItems.length > 0 
+            ? `<div class="result-meta">${metaItems.join(' <span class="res-sep">·</span> ')}</div>` 
+            : '';
+
           item.innerHTML = `
             <h3>${title}</h3>
+            ${metaHtml}
             <p>${data.excerpt}</p>
           `;
           resultsContainer.appendChild(item);
@@ -300,10 +310,32 @@
   }
 
   .result-item h3 {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.25rem 0;
     font-size: 1rem;
     font-weight: var(--font-weight-bold);
     color: var(--text-primary);
+  }
+
+  .result-meta {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .res-sep {
+    opacity: 0.5;
+  }
+
+  .res-category {
+    color: var(--text-secondary);
+  }
+
+  .res-tags {
+    font-style: italic;
   }
 
   .result-item p {
