@@ -41,7 +41,6 @@
     }
 
     function setupSearch() {
-      // Re-query elements to ensure we have the ones currently in the DOM
       const trigger = document.getElementById('search-trigger');
       const modal = document.getElementById('search-modal');
       const backdrop = modal?.querySelector('.modal-backdrop');
@@ -88,7 +87,10 @@
         const pf = await initPagefind();
         if (!pf || currentSearchId !== searchId) return;
 
-        const search = await pf.search(query);
+        // Pre-process query: replace dots with spaces to match dates like 2026 01 25
+        const processedQuery = query.replace(/\./g, ' ');
+        const search = await pf.search(processedQuery);
+        
         if (currentSearchId !== searchId) return;
 
         if (search.results.length === 0) {
@@ -96,7 +98,7 @@
           return;
         }
 
-        // Get data for top results
+        // Get data for results
         const rawResults = await Promise.all(search.results.slice(0, 10).map(r => r.data()));
         if (currentSearchId !== searchId) return;
 
@@ -104,16 +106,13 @@
         const seen = new Set();
         const filteredResults = [];
         
-        for (const res of search.results) {
-          const data = await res.data();
-          
-          // Ultra-aggressive normalization
+        for (const data of rawResults) {
           let url = data.url
-            .replace(/https?:\/\/[^\/]+/, '') // Remove protocol and domain
-            .split('?')[0] // Remove query strings
-            .split('#')[0] // Remove hashes
-            .replace(/\/index\.html$/, '') // Remove index.html
-            .replace(/\/+$/, ''); // Remove all trailing slashes
+            .replace(/https?:\/\/[^\/]+/, '')
+            .split('?')[0]
+            .split('#')[0]
+            .replace(/\/index\.html$/, '')
+            .replace(/\/+$/, '');
           
           if (url === '') url = '/';
           
@@ -131,20 +130,17 @@
           item.href = data.url;
           item.className = 'result-item';
           
-          // Manual highlight helper function
-          const highlightText = (text, query) => {
-            if (!query || !text) return text;
-            const parts = query.split(/[.\s-]+/).filter(p => p.length > 0);
+          const highlightText = (text, q) => {
+            if (!q || !text) return text;
+            const parts = q.split(/[.\s-]+/).filter(p => p.length > 0);
             if (parts.length === 0) return text;
             const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
             const regex = new RegExp(`(${pattern})`, 'gi');
             return text.replace(regex, '<mark>$1</mark>');
           };
 
-          // Highlight title
           const highlightedTitle = highlightText(data.meta.title || 'Untitled', query);
 
-          // Metadata line (Date, Category, Tags)
           const metaItems = [];
           if (data.meta.date) metaItems.push(`<span class="res-date">${highlightText(data.meta.date, query)}</span>`);
           if (data.meta.category) metaItems.push(`<span class="res-category">${highlightText(data.meta.category, query)}</span>`);
@@ -160,16 +156,23 @@
             ? `<div class="result-meta">${metaItems.join(' <span class="res-sep">·</span> ')}</div>` 
             : '';
 
+          let excerpt = data.excerpt;
+          if (excerpt.includes('__SEARCH_META__')) {
+            excerpt = excerpt.split('__SEARCH_META__')[0].trim();
+          }
+          if (!excerpt || excerpt === '...') {
+            excerpt = '匹配到文章元数据。';
+          }
+
           item.innerHTML = `
             <h3>${highlightedTitle}</h3>
             ${metaHtml}
-            <p>${data.excerpt}</p>
+            <p>${excerpt}</p>
           `;
           resultsContainer.appendChild(item);
         });
       };
 
-      // Keyboard shortcuts (attach to window/document only once or update safely)
       const handleKeydown = (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
           e.preventDefault();
@@ -184,13 +187,11 @@
         }
       };
 
-      // Remove old listener to avoid duplicates
       document.removeEventListener('keydown', window._handleSearchKeydown);
       window._handleSearchKeydown = handleKeydown;
       document.addEventListener('keydown', window._handleSearchKeydown);
     }
 
-    // Initialize on first load and after view transitions
     document.addEventListener('astro:page-load', setupSearch);
   })();
 </script>
@@ -356,7 +357,6 @@
     line-height: 1.4;
   }
 
-  /* Pagefind highlight style */
   .result-item :global(mark) {
     background-color: var(--mark) !important;
     color: var(--text-primary) !important;

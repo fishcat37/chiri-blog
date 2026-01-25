@@ -12,6 +12,17 @@ export default function rehypeIgnoreFootnoteRefs() {
         if (!node.properties) node.properties = {}
         node.properties['data-pagefind-ignore'] = true
       }
+      // Ignore the footnotes section itself and back-references
+      if (
+        (node.properties &&
+          node.properties.className &&
+          (node.properties.className.includes('footnotes') ||
+            node.properties.className.includes('footnote-backref'))) ||
+        (node.properties && node.properties.hasOwnProperty('dataFootnoteBackref'))
+      ) {
+        if (!node.properties) node.properties = {}
+        node.properties['data-pagefind-ignore'] = true
+      }
     })
   }
 }
