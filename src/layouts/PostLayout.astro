@@ -21,7 +21,6 @@ import CategoryTag from '@/components/ui/CategoryTag.astro'
 import TagList from '@/components/ui/TagList.astro'
 
 import { themeConfig } from '@/config'
-
 import { formatDate } from '@/utils/date'
 
 const { title, pubDate, category, tags, readingTime, toc } = Astro.props as PostLayoutProps
@@ -56,7 +55,7 @@ const formattedDate = formatDate(pubDate)
               category && (
                 <>
                   <span class="separator" data-pagefind-ignore>·</span>
-                  <div data-pagefind-meta="category" data-pagefind-weight="7" data-pagefind-ignore>
+                  <div data-pagefind-meta="category" data-pagefind-weight="7">
                     <CategoryTag category={category} />
                   </div>
                 </>
@@ -72,18 +71,13 @@ const formattedDate = formatDate(pubDate)
             }
           </div>
           {tags && tags.length > 0 && (
-            <div data-pagefind-meta="tags" data-pagefind-weight="7" data-pagefind-ignore>
+            <div data-pagefind-meta="tags" data-pagefind-weight="7">
               <TagList tags={tags} />
             </div>
           )}
         </div>
         <article class="content" data-pagefind-body>
           <slot />
-          {/* Searchable keywords at the end of the body, hidden from UI. 
-              Prefix used to strip from search excerpts in UI. */}
-          <div style="display:none" aria-hidden="true">
-            __SEARCH_META__ {title} {formattedDate} {category} {tags?.join(' ')}
-          </div>
         </article>
         <div data-pagefind-ignore>
           <Giscus />
