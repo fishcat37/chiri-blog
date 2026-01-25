@@ -23,6 +23,9 @@ importers:
       '@playform/inline':
         specifier: ^0.1.2
         version: 0.1.2(@netlify/blobs@10.5.0)(@types/node@25.0.9)(@vercel/functions@2.2.13)(jiti@2.6.1)(rollup@4.55.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
+      '@vercel/analytics':
+        specifier: ^1.6.1
+        version: 1.6.1
       astro:
         specifier: ^5.16.11
         version: 5.16.11(@netlify/blobs@10.5.0)(@types/node@25.0.9)(@vercel/functions@2.2.13)(jiti@2.6.1)(rollup@4.55.1)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
