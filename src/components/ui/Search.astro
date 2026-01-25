@@ -88,9 +88,10 @@
         if (!pf || currentSearchId !== searchId) return;
 
         // MULTI-STRATEGY SEARCH:
-        // Try searching with literal first, then fallback to fragmented if symbols are present
+        // Try literal search first
         let search = await pf.search(query);
         
+        // If results are zero and query has symbols, try fragmented search
         if (search.results.length === 0 && /[.\-\/]/.test(query)) {
           const processedQuery = query.replace(/[.\-\/]/g, ' ');
           const altSearch = await pf.search(processedQuery);
@@ -113,7 +114,14 @@
         const filteredResults = [];
         
         for (const data of rawResults) {
-          let url = data.url.replace(/https?:\/\/[^\/]+/, '').split('?')[0].split('#')[0].replace(/\/index\.html$/, '').replace(/\/+$/, '');
+          // Normalize URL for de-duplication
+          let url = data.url
+            .replace(/https?:\/\/[^\/]+/, '')
+            .split('?')[0]
+            .split('#')[0]
+            .replace(/\/index\.html$/, '')
+            .replace(/\/+$/, '');
+          
           if (url === '') url = '/';
           
           if (!seen.has(url)) {
@@ -130,18 +138,23 @@
           item.href = data.url;
           item.className = 'result-item';
           
+          // Improved manual highlight function
           const highlightText = (text, q) => {
             if (!q || !text) return text;
-            // Split by symbols to catch parts of n-gram or 1.25
+            
+            const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const parts = q.split(/[.\s\-\/]+/).filter(p => p.length > 0);
-            if (parts.length === 0) {
-               const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-               return text.replace(regex, '<mark>$1</mark>');
-            }
-            // Sort by length to match longest tokens first
-            const pattern = [...new Set(parts)].sort((a,b) => b.length - a.length)
-              .map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-            const regex = new RegExp(`(${pattern})`, 'gi');
+            
+            const patternSet = new Set([escapedQ]);
+            if (parts.length > 0) parts.forEach(p => patternSet.add(p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+            
+            const combinedPattern = Array.from(patternSet)
+              .sort((a,b) => b.length - a.length)
+              .join('|');
+            
+            if (!combinedPattern) return text;
+
+            const regex = new RegExp(`(${combinedPattern})`, 'gi');
             return text.replace(regex, '<mark>$1</mark>');
           };
 
@@ -355,6 +368,7 @@
     line-height: 1.4;
   }
 
+  /* Pagefind highlight style */
   .result-item :global(mark) {
     background-color: var(--mark) !important;
     color: var(--text-primary) !important;
