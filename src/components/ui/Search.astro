@@ -104,14 +104,16 @@
         const seen = new Set();
         const filteredResults = [];
         
-        for (const data of rawResults) {
-          // Robust normalization: remove scheme, domain, trailing slashes, and index.html
+        for (const res of search.results) {
+          const data = await res.data();
+          
+          // Ultra-aggressive normalization
           let url = data.url
-            .replace(/https?:\/\/[^\/]+/, '') // Remove domain if absolute
-            .split('?')[0] // Remove query params
+            .replace(/https?:\/\/[^\/]+/, '') // Remove protocol and domain
+            .split('?')[0] // Remove query strings
             .split('#')[0] // Remove hashes
-            .replace(/\/index\.html$/, '')
-            .replace(/\/$/, '');
+            .replace(/\/index\.html$/, '') // Remove index.html
+            .replace(/\/+$/, ''); // Remove all trailing slashes
           
           if (url === '') url = '/';
           
@@ -132,12 +134,19 @@
           // Manual highlight for title
           let title = data.meta.title || 'Untitled';
           if (query.length > 0) {
-            // Split query by common separators to highlight multiple parts
-            const parts = query.split(/[.\s-]+/).filter(p => p.length > 0);
-            if (parts.length > 0) {
-              const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-              const regex = new RegExp(`(${pattern})`, 'gi');
-              title = title.replace(regex, '<mark>$1</mark>');
+            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Try exact match first
+            const exactRegex = new RegExp(`(${escapedQuery})`, 'gi');
+            if (exactRegex.test(title)) {
+              title = title.replace(exactRegex, '<mark>$1</mark>');
+            } else {
+              // Highlight parts but only if they are not single chars/digits
+              const parts = query.split(/[.\s-]+/).filter(p => p.length > 1);
+              if (parts.length > 0) {
+                const pattern = parts.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+                const partRegex = new RegExp(`(${pattern})`, 'gi');
+                title = title.replace(partRegex, '<mark>$1</mark>');
+              }
             }
           }
 
@@ -148,9 +157,9 @@
           if (data.meta.tags) {
             // Clean up tags to avoid double ##
             const tags = data.meta.tags.split(',')
-              .map(t => t.trim())
+              .map(t => t.trim().replace(/^#+/, '')) // Remove all leading #
               .filter(t => t)
-              .map(t => t.startsWith('#') ? t : `#${t}`)
+              .map(t => `#${t}`)
               .join(' ');
             metaItems.push(`<span class="res-tags">${tags}</span>`);
           }
