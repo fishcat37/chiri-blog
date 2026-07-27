@@ -26,7 +26,7 @@ type Props = {
 const { tag, posts } = Astro.props
 ---
 
-<IndexLayout title={`#${tag} · ${themeConfig.site.title}`} description={`包含 #${tag} 标签的文章`}>
+<IndexLayout title={`#${tag} · ${themeConfig.site.title}`} description={`包含 #${tag} 标签的文章`} showBackButton>
   <main>
     <h1 class="tag-title">#{tag}</h1>
     <p class="tag-count">共 {posts.length} 篇文章</p>
