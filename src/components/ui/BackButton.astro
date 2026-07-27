@@ -11,7 +11,7 @@ import { themeConfig } from '@/config'
       stroke-linecap="round"
       stroke-linejoin="round"></path>
   </svg>
-  homepage
+  back
 </a>
 
 <script
@@ -27,6 +27,15 @@ import { themeConfig } from '@/config'
     function adjustBackButtonPosition() {
       const button = document.querySelector('.back-button')
       if (!button) return
+
+      button.onclick = (event) => {
+        event.preventDefault()
+        if (window.history.length > 1) {
+          window.history.back()
+        } else {
+          window.location.href = button.getAttribute('href') || '/'
+        }
+      }
 
       // If not using centered layout, remove fixed positioning
       if (!centeredLayout) {
