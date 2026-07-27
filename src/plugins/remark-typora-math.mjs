@@ -50,6 +50,11 @@ function normalizeTyporaMath(source) {
       continue
     }
 
+    if (line.trim() === '$$') {
+      normalized.push('')
+      continue
+    }
+
     const markerIndex = line.indexOf('$$')
     if (markerIndex !== -1 && hasFutureMarker(lines, index) && !isInsideInlineCode(line, markerIndex)) {
       const before = line.slice(0, markerIndex).trimEnd()
